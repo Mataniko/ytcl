@@ -1,3 +1,5 @@
+$(document).on("fullscreenchange", handleFullScreenChange);
+
 function initalizeProgressBar() {
     setInterval(function() {
     var term = $('#terminal').terminal();
@@ -34,8 +36,7 @@ $('#terminal').terminal(function(input, term) {
             switch (command)
             {
                     case "play":
-                        player.playVideo();
-                        initalizeProgressBar();
+                        player.playVideo();                        
                         break;
                     case "pause":
                         player.pauseVideo();
@@ -56,7 +57,13 @@ $('#terminal').terminal(function(input, term) {
                         player.loadVideoById(arg)
                         break;
                     case "seek":
-                        player.seekTo(arg);
+                        if (arg.indexOf(':') == -1)
+                            player.seekTo(arg);
+                        else
+                            player.seekTo(parseSaneTime(arg));
+                        break;
+                    case "fullscreen":
+                        doFullScreen()
                         break;
             }           
         } catch(e) {
@@ -66,32 +73,58 @@ $('#terminal').terminal(function(input, term) {
        term.echo('');
     }
 }, {
-    greetings: 'Javascript Interpreter',
+    greetings: false,
     name: 'js_demo',
+    outputLimit: 4,
     height: 200,
-    prompt: 'js> '});
+    prompt: 'ytcl> '});
 
 function trimCommand(command, string) {
     return $.trim(string.replace(command, ''))
 }
 
+function doFullScreen()
+{
+    var fsElement = $('#fullscreen')
+    fsElement.fullScreen(!fsElement.fullScreen())        
+}
+
+function handleFullScreenChange()
+{
+    if ($('#fullscreen').fullScreen()) {
+        setTimeout(function() {
+            $('#player').css({height: document.height-500, width: document.width});
+        }, 100);
+        $('#terminal').terminal().resize([document.width, 200]);
+    }
+    else
+    {
+        setTimeout(function() {
+            $('#player').css({height: 390, width: 640});
+        }, 100);
+    }
+}
+                
 function getPlaybackPercent() 
 {
     return Math.floor((player.getCurrentTime() / player.getDuration() * 100))
 }
 
-function getProgressBar() {
-    var progress = getSaneTime(player.getCurrentTime()) + ' ' + drawVolume() + ' ['
+function getProgressBar() {    
+    var prefix = getSaneTime(player.getCurrentTime()) + ' ' + drawVolume() + ' ['
+    var postfix = '] ' + getSaneTime(player.getDuration());
+    var progressLength = (document.width/7)- 7 - prefix.length - postfix.length;
+    
+    var progress = ""
     var currentTime = getPlaybackPercent()/2;
-    for (var i=1; i<=50; i++) {
+    for (var i=1; i<=progressLength; i++) {
         if (currentTime >= i)
             progress += '#';
         else
             progress += ' ';
-    }
-    progress += '] ' + getSaneTime(player.getDuration());
+    }    
     
-    return progress;
+    return prefix + progress + postfix;
 }
 
 function getSaneTime(seconds) {
@@ -111,3 +144,19 @@ function getSaneTime(seconds) {
     return hours + ":" + minutes + ":" + seconds;        
 }
 
+function parseSaneTime(time) {
+    try {        
+        var split = time.replace(":0",":").split(':')
+        if (split.length == 2)
+            return (split[0]*60)+Number(split[1]);
+        
+        if (split.length == 3)
+            return (split[0]*3600)+(split[1]*60)+Number(split[2]);
+        
+        return NaN;
+    }
+    catch (e) {
+        return NaN;
+    }
+    
+}
