@@ -5,3 +5,17 @@ body {
 #fullscreen {
     background-color: black;
 }
+
+#video {
+    padding: 8px;
+}
+
+#progressBar {
+    font-family: 'Inconsolata', monospace;
+    color: #aaa;
+    background-color: #000;
+    font-size: 15px;
+    line-height: 14px;
+    position: relative;
+    top: -14px;
+}

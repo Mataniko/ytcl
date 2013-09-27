@@ -1,11 +1,10 @@
 $(document).on("fullscreenchange", handleFullScreenChange);
 
 function initalizeProgressBar() {
-    setInterval(function() {
-    var term = $('#terminal').terminal();
-            var command = term.get_command();
-            term.clear().echo(getProgressBar()).set_command(command);       
-}, 1) };
+    setInterval(function() {  
+            $('#progressBar').text(getProgressBar())
+    }, 1);
+}
 
 function drawVolume() {
     var volume = Math.floor(player.getVolume()/20);
@@ -22,6 +21,7 @@ function drawVolume() {
     }
     return volString;
 }
+
 $('#terminal').terminal(function(input, term) {    
     if (command !== '') {
         try {
@@ -93,7 +93,7 @@ function handleFullScreenChange()
 {
     if ($('#fullscreen').fullScreen()) {
         setTimeout(function() {
-            $('#player').css({height: document.height-500, width: document.width});
+            $('#player').attr({height: document.height-75, width: document.width});
         }, 100);
         $('#terminal').terminal().resize([document.width, 200]);
     }
@@ -113,11 +113,10 @@ function getPlaybackPercent()
 function getProgressBar() {    
     var prefix = getSaneTime(player.getCurrentTime()) + ' ' + drawVolume() + ' ['
     var postfix = '] ' + getSaneTime(player.getDuration());
-    var progressLength = (document.width/7)- 7 - prefix.length - postfix.length;
-    
+    var progressLength = ($('#player').attr('width')/8) - prefix.length - postfix.length;               
     var progress = ""
-    var currentTime = getPlaybackPercent()/2;
-    for (var i=1; i<=progressLength; i++) {
+    var currentTime = getPlaybackPercent()/(100/progressLength);
+    for (var i=1; i<=progressLength; ++i) {
         if (currentTime >= i)
             progress += '#';
         else
